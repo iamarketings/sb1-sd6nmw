@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <%- include('../partials/head') %>
+  <title>Profil - <%= user.username %></title>
+  <style>
+    .profile-header {
+      background: linear-gradient(135deg, var(--primary-violet) 0%, var(--primary-blue) 100%);
+      padding: 3rem 0;
+      margin-bottom: 2rem;
+      color: white;
+    }
+    
+    .profile-avatar {
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      background: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 3rem;
+      color: var(--primary-violet);
+      margin: 0 auto 1.5rem;
+    }
+    
+    .profile-card {
+      background: white;
+      border-radius: 15px;
+      padding: 2rem;
+      margin-bottom: 2rem;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    
+    .form-group {
+      margin-bottom: 1.5rem;
+    }
+    
+    .password-toggle {
+      cursor: pointer;
+      position: absolute;
+      right: 1rem;
+      top: 50%;
+      transform: translateY(-50%);
+    }
+    
+    .storage-stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+      margin-top: 1.5rem;
+    }
+    
+    .stat-item {
+      background: var(--light-violet);
+      padding: 1.5rem;
+      border-radius: 10px;
+      text-align: center;
+    }
+    
+    .stat-item i {
+      font-size: 2rem;
+      color: var(--primary-violet);
+      margin-bottom: 1rem;
+    }
+  </style>
+</head>
+<body class="bg-light">
+  <%- include('../partials/navbar') %>
+
+  <!-- Profile Header -->
+  <div class="profile-header">
+    <div class="container text-center">
+      <div class="profile-avatar">
+        <i class="fas fa-user"></i>
+      </div>
+      <h1 class="h3 mb-2"><%= user.username %></h1>
+      <p class="mb-0">Membre depuis <%= new Date(user.created_at).toLocaleDateString() %></p>
+    </div>
+  </div>
+
+  <div class="container py-4">
+    <div class="row">
+      <!-- Informations personnelles -->
+      <div class="col-lg-8">
+        <div class="profile-card">
+          <h3 class="h4 mb-4">Informations personnelles</h3>
+          <form id="profileForm" method="POST" action="/profile/update">
+            <div class="row">
+              <div class="col-md-6">
+                <div class="form-group">
+                  <label class="form-label">Prénom</label>
+                  <input type="text" class="form-control" name="firstName" value="<%= user.firstName || '' %>">
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="form-group">
+                  <label class="form-label">Nom</label>
+                  <input type="text" class="form-control" name="lastName" value="<%= user.lastName || '' %>">
+                </div>
+              </div>
+            </div>
+            
+            <div class="form-group">
+              <label class="form-label">Email</label>
+              <input type="email" class="form-control" name="email" value="<%= user.email || '' %>">
+            </div>
+            
+            <div class="form-group">
+              <label class="form-label">Téléphone</label>
+              <input type="tel" class="form-control" name="phone" value="<%= user.phone || '' %>">
+            </div>
+            
+            <button type="submit" class="btn btn-primary">
+              Mettre à jour le profil
+            </button>
+          </form>
+        </div>
+
+        <!-- Modification du mot de passe -->
+        <div class="profile-card">
+          <h3 class="h4 mb-4">Modifier le mot de passe</h3>
+          <form id="passwordForm" method="POST" action="/profile/password">
+            <div class="form-group position-relative">
+              <label class="form-label">Mot de passe actuel</label>
+              <input type="password" class="form-control" name="currentPassword" required>
+              <i class="fas fa-eye password-toggle"></i>
+            </div>
+            
+            <div class="form-group position-relative">
+              <label class="form-label">Nouveau mot de passe</label>
+              <input type="password" class="form-control" name="newPassword" required>
+              <i class="fas fa-eye password-toggle"></i>
+            </div>
+            
+            <div class="form-group position-relative">
+              <label class="form-label">Confirmer le nouveau mot de passe</label>
+              <input type="password" class="form-control" name="confirmPassword" required>
+              <i class="fas fa-eye password-toggle"></i>
+            </div>
+            
+            <button type="submit" class="btn btn-primary">
+              Changer le mot de passe
+            </button>
+          </form>
+        </div>
+      </div>
+
+      <!-- Statistiques et informations -->
+      <div class="col-lg-4">
+        <div class="profile-card">
+          <h3 class="h4 mb-4">Statistiques de stockage</h3>
+          
+          <!-- Storage Progress -->
+          <div class="mb-4">
+            <div class="d-flex justify-content-between mb-2">
+              <span>Espace utilisé</span>
+              <span><%= formatSize(storageUsed) %> / <%= formatSize(storageLimit) %></span>
+            </div>
+            <div class="progress">
+              <div class="progress-bar" role="progressbar" 
+                   style="width: <%= (storageUsed / storageLimit) * 100 %>%"
+                   aria-valuenow="<%= (storageUsed / storageLimit) * 100 %>"
+                   aria-valuemin="0" aria-valuemax="100">
+              </div>
+            </div>
+          </div>
+
+          <!-- Stats Grid -->
+          <div class="storage-stats">
+            <div class="stat-item">
+              <i class="fas fa-file"></i>
+              <h4 class="h5 mb-0"><%= totalFiles %></h4>
+              <p class="text-muted mb-0">Fichiers</p>
+            </div>
+            <div class="stat-item">
+              <i class="fas fa-folder"></i>
+              <h4 class="h5 mb-0"><%= totalFolders %></h4>
+              <p class="text-muted mb-0">Dossiers</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Préférences -->
+        <div class="profile-card">
+          <h3 class="h4 mb-4">Préférences</h3>
+          <form id="preferencesForm" method="POST" action="/profile/preferences">
+            <div class="form-check mb-3">
+              <input class="form-check-input" type="checkbox" id="emailNotifications" name="emailNotifications">
+              <label class="form-check-label" for="emailNotifications">
+                Recevoir les notifications par email
+              </label>
+            </div>
+            <button type="submit" class="btn btn-primary">
+              Enregistrer les préférences
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Toggle password visibility
+    document.querySelectorAll('.password-toggle').forEach(toggle => {
+      toggle.addEventListener('click', function() {
+        const input = this.previousElementSibling;
+        const type = input.getAttribute('type') === 'password' ? 'text' : 'password';
+        input.setAttribute('type', type);
+        this.classList.toggle('fa-eye');
+        this.classList.toggle('fa-eye-slash');
+      });
+    });
+
+    // Form submission handlers with loading animation
+    const forms = ['profileForm', 'passwordForm', 'preferencesForm'];
+    forms.forEach(formId => {
+      document.getElementById(formId).addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const submitBtn = this.querySelector('button[type="submit"]');
+        const originalText = submitBtn.innerHTML;
+        
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Chargement...';
+        submitBtn.disabled = true;
+
+        try {
+          const formData = new FormData(this);
+          const response = await fetch(this.action, {
+            method: 'POST',
+            body: formData
+          });
+
+          if (response.ok) {
+            alert('Modifications enregistrées avec succès!');
+            if (formId === 'passwordForm') {
+              this.reset();
+            }
+          } else {
+            throw new Error('Erreur lors de la sauvegarde');
+          }
+        } catch (error) {
+          alert(error.message);
+        } finally {
+          submitBtn.innerHTML = originalText;
+          submitBtn.disabled = false;
+        }
+      });
+    });
+  </script>
+</body>
+</html>

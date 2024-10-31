@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <%- include('../partials/head') %>
+  <title>Administration - Dashboard</title>
+  <style>
+    .dashboard-stats {
+      background: linear-gradient(135deg, var(--primary-violet) 0%, var(--primary-blue) 100%);
+      border-radius: 15px;
+      padding: 1.5rem;
+      color: white;
+      margin-bottom: 2rem;
+    }
+    .stat-card {
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 10px;
+      padding: 1.5rem;
+      backdrop-filter: blur(10px);
+      transition: transform 0.3s ease;
+    }
+    .stat-card:hover {
+      transform: translateY(-5px);
+    }
+    .stat-icon {
+      font-size: 2.5rem;
+      margin-bottom: 1rem;
+    }
+    .chart-container {
+      background: white;
+      border-radius: 15px;
+      padding: 1.5rem;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      margin-bottom: 2rem;
+    }
+    .activity-feed {
+      background: white;
+      border-radius: 15px;
+      padding: 1.5rem;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    .activity-item {
+      padding: 1rem;
+      border-left: 4px solid var(--primary-violet);
+      background: #f8f9fa;
+      margin-bottom: 1rem;
+      border-radius: 0 10px 10px 0;
+    }
+    .quick-actions {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+    .action-card {
+      background: white;
+      border-radius: 10px;
+      padding: 1.5rem;
+      text-align: center;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      transition: all 0.3s ease;
+    }
+    .action-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+    }
+    .storage-chart {
+      height: 300px;
+      margin-bottom: 2rem;
+    }
+  </style>
+</head>
+<body class="bg-light">
+  <%- include('../partials/navbar') %>
+
+  <div class="container py-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <h1 class="h2 mb-0">Tableau de Bord Administrateur</h1>
+      <div class="btn-group">
+        <a href="/admin/users" class="btn btn-primary">
+          <i class="fas fa-users me-2"></i>Utilisateurs
+        </a>
+        <a href="/admin/storage" class="btn btn-outline-primary">
+          <i class="fas fa-database me-2"></i>Stockage
+        </a>
+      </div>
+    </div>
+
+    <!-- Stats Overview -->
+    <div class="dashboard-stats">
+      <div class="row g-4">
+        <div class="col-md-4">
+          <div class="stat-card">
+            <div class="stat-icon">
+              <i class="fas fa-users"></i>
+            </div>
+            <h3 class="h2 mb-2"><%= totalUsers %></h3>
+            <p class="mb-0">Utilisateurs Totaux</p>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="stat-card">
+            <div class="stat-icon">
+              <i class="fas fa-user-check"></i>
+            </div>
+            <h3 class="h2 mb-2"><%= activeUsers %></h3>
+            <p class="mb-0">Utilisateurs Actifs</p>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="stat-card">
+            <div class="stat-icon">
+              <i class="fas fa-database"></i>
+            </div>
+            <h3 class="h2 mb-2"><%= formatSize(totalStorage) %></h3>
+            <p class="mb-0">Stockage Utilisé</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="quick-actions">
+      <div class="action-card">
+        <i class="fas fa-user-plus fa-2x mb-3 text-primary"></i>
+        <h4>Nouvel Utilisateur</h4>
+        <a href="/admin/users" class="btn btn-sm btn-outline-primary mt-2">Gérer</a>
+      </div>
+      <div class="action-card">
+        <i class="fas fa-cog fa-2x mb-3 text-primary"></i>
+        <h4>Paramètres</h4>
+        <a href="/admin/settings" class="btn btn-sm btn-outline-primary mt-2">Configurer</a>
+      </div>
+      <div class="action-card">
+        <i class="fas fa-chart-line fa-2x mb-3 text-primary"></i>
+        <h4>Statistiques</h4>
+        <a href="/admin/stats" class="btn btn-sm btn-outline-primary mt-2">Voir</a>
+      </div>
+    </div>
+
+    <!-- Storage Usage Chart -->
+    <div class="chart-container">
+      <h3 class="h4 mb-4">Utilisation du Stockage</h3>
+      <div class="storage-chart">
+        <canvas id="storageChart"></canvas>
+      </div>
+    </div>
+
+    <!-- Recent Activity -->
+    <div class="activity-feed">
+      <h3 class="h4 mb-4">Activités Récentes</h3>
+      <div class="activity-item">
+        <div class="d-flex justify-content-between align-items-center">
+          <div>
+            <h5 class="mb-1">Nouvelle inscription</h5>
+            <p class="text-muted mb-0">Un nouvel utilisateur a rejoint la plateforme</p>
+          </div>
+          <small class="text-muted">Il y a 2 heures</small>
+        </div>
+      </div>
+      <div class="activity-item">
+        <div class="d-flex justify-content-between align-items-center">
+          <div>
+            <h5 class="mb-1">Mise à jour système</h5>
+            <p class="text-muted mb-0">Le système a été mis à jour vers la dernière version</p>
+          </div>
+          <small class="text-muted">Il y a 5 heures</small>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script>
+    // Storage Usage Chart
+    const ctx = document.getElementById('storageChart').getContext('2d');
+    new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Juin'],
+        datasets: [{
+          label: 'Utilisation du stockage (Go)',
+          data: [12, 19, 15, 25, 22, 30],
+          borderColor: '#8B5CF6',
+          tension: 0.4,
+          fill: true,
+          backgroundColor: 'rgba(139, 92, 246, 0.1)'
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            position: 'bottom'
+          }
+        },
+        scales: {
+          y: {
+            beginAtZero: true
+          }
+        }
+      }
+    });
+  </script>
+</body>
+</html>

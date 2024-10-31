@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <%- include('partials/head') %>
+  <title>Erreur - Cloud IAmarketings</title>
+</head>
+<body class="bg-gray-100">
+  <%- include('partials/navbar') %>
+
+  <div class="container py-5">
+    <div class="row justify-content-center">
+      <div class="col-md-6">
+        <div class="card shadow-sm">
+          <div class="card-body text-center">
+            <i class="fas fa-exclamation-triangle text-danger fa-3x mb-3"></i>
+            <h1 class="h4 mb-3">Une erreur est survenue</h1>
+            <p class="text-muted mb-4"><%= error %></p>
+            <a href="/" class="btn btn-primary">Retour à l'accueil</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <%- include('partials/footer') %>
+</body>
+</html>

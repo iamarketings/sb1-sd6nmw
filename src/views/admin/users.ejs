@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <%- include('../partials/head') %>
+  <title>Administration - Utilisateurs</title>
+</head>
+<body class="bg-gray-100">
+  <%- include('../partials/navbar') %>
+
+  <div class="container py-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <h1>Gestion des utilisateurs</h1>
+      <a href="/admin" class="btn btn-outline-primary">Retour au dashboard</a>
+    </div>
+
+    <div class="card shadow-sm">
+      <div class="card-body">
+        <div class="table-responsive">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Nom d'utilisateur</th>
+                <th>Date de création</th>
+                <th>Statut</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% users.forEach(function(user) { %>
+                <tr>
+                  <td><%= user.id %></td>
+                  <td><%= user.username %></td>
+                  <td><%= new Date(user.created_at).toLocaleDateString() %></td>
+                  <td>
+                    <span class="badge bg-<%= user.is_active ? 'success' : 'danger' %>">
+                      <%= user.is_active ? 'Actif' : 'Inactif' %>
+                    </span>
+                  </td>
+                  <td>
+                    <form action="/admin/users/<%= user.id %>/toggle" method="POST" class="d-inline">
+                      <button type="submit" class="btn btn-sm btn-<%= user.is_active ? 'danger' : 'success' %>">
+                        <%= user.is_active ? 'Désactiver' : 'Activer' %>
+                      </button>
+                    </form>
+                  </td>
+                </tr>
+              <% }); %>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

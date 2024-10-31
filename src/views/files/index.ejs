@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <%- include('../partials/head') %>
+  <title>Mes Fichiers - Cloud IAmarketings</title>
+</head>
+<body class="bg-light">
+  <%- include('../partials/navbar') %>
+
+  <div class="container py-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <h1 class="h2">Mes Fichiers</h1>
+      <div class="storage-info">
+        <span class="text-muted">
+          <%= formatSize(totalUsed) %> / 30 Go
+        </span>
+      </div>
+    </div>
+
+    <% if (error) { %>
+      <div class="alert alert-danger" role="alert">
+        <%= error %>
+      </div>
+    <% } %>
+
+    <% if (success) { %>
+      <div class="alert alert-success" role="alert">
+        <%= success %>
+      </div>
+    <% } %>
+
+    <!-- Upload Zone -->
+    <div class="upload-zone mb-4" id="uploadZone">
+      <form action="/files/upload" method="POST" enctype="multipart/form-data" id="uploadForm">
+        <input type="file" name="file" id="fileInput" class="d-none" onchange="handleFileSelect(this)">
+        <div class="upload-content">
+          <div class="upload-idle">
+            <i class="fas fa-cloud-upload-alt fa-3x mb-3" style="color: var(--primary-violet)"></i>
+            <h3 class="h5 mb-3">Glissez-déposez vos fichiers ici</h3>
+            <p class="text-muted mb-3">ou</p>
+            <button type="button" class="btn btn-primary" onclick="document.getElementById('fileInput').click()">
+              Sélectionner des fichiers
+            </button>
+          </div>
+          <div class="upload-progress" style="display: none;">
+            <div class="progress-circle">
+              <svg class="progress-ring" width="120" height="120">
+                <circle class="progress-ring__circle" stroke="var(--primary-violet)" stroke-width="4" fill="transparent" r="52" cx="60" cy="60"/>
+              </svg>
+              <div class="progress-text">0%</div>
+            </div>
+            <h4 class="mt-3 upload-filename">Chargement...</h4>
+          </div>
+        </div>
+      </form>
+    </div>
+
+    <!-- Files List -->
+    <div class="card">
+      <div class="card-body">
+        <% if (files && files.length > 0) { %>
+          <div class="list-group">
+            <% files.forEach(function(file) { %>
+              <div class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                <div class="d-flex align-items-center">
+                  <i class="fas fa-file me-3 text-primary"></i>
+                  <div>
+                    <h6 class="mb-0"><%= file.name %></h6>
+                    <small class="text-muted"><%= formatSize(file.size) %></small>
+                  </div>
+                </div>
+                <div class="btn-group">
+                  <a href="/files/download/<%= file.name %>" class="btn btn-outline-primary btn-sm">
+                    <i class="fas fa-download me-1"></i> Télécharger
+                  </a>
+                  <button onclick="deleteFile('<%= file.name %>')" class="btn btn-outline-danger btn-sm">
+                    <i class="fas fa-trash me-1"></i> Supprimer
+                  </button>
+                </div>
+              </div>
+            <% }); %>
+          </div>
+        <% } else { %>
+          <div class="text-center py-5">
+            <i class="fas fa-folder-open fa-3x mb-3 text-muted"></i>
+            <p class="text-muted mb-0">Aucun fichier disponible</p>
+          </div>
+        <% } %>
+      </div>
+    </div>
+  </div>
+
+  <%- include('../partials/footer') %>
+
+  <script>
+    function handleFileSelect(input) {
+      if (input.files && input.files[0]) {
+        const file = input.files[0];
+        showUploadProgress(file.name);
+        simulateUpload();
+      }
+    }
+
+    function showUploadProgress(filename) {
+      const uploadIdle = document.querySelector('.upload-idle');
+      const uploadProgress = document.querySelector('.upload-progress');
+      const uploadFilename = document.querySelector('.upload-filename');
+      
+      uploadIdle.style.display = 'none';
+      uploadProgress.style.display = 'block';
+      uploadFilename.textContent = filename;
+      
+      const circle = document.querySelector('.progress-ring__circle');
+      const radius = circle.r.baseVal.value;
+      const circumference = radius * 2 * Math.PI;
+      
+      circle.style.strokeDasharray = `${circumference} ${circumference}`;
+      circle.style.strokeDashoffset = circumference;
+    }
+
+    function setProgress(percent) {
+      const circle = document.querySelector('.progress-ring__circle');
+      const radius = circle.r.baseVal.value;
+      const circumference = radius * 2 * Math.PI;
+      const offset = circumference - (percent / 100 * circumference);
+      
+      circle.style.strokeDashoffset = offset;
+      document.querySelector('.progress-text').textContent = `${Math.round(percent)}%`;
+    }
+
+    function simulateUpload() {
+      let progress = 0;
+      const interval = setInterval(() => {
+        progress += 5;
+        setProgress(progress);
+        
+        if (progress >= 100) {
+          clearInterval(interval);
+          document.getElementById('uploadForm').submit();
+        }
+      }, 100);
+    }
+
+    async function deleteFile(filename) {
+      if (!confirm('Voulez-vous vraiment supprimer ce fichier ?')) {
+        return;
+      }
+      
+      try {
+        const response = await fetch(`/files/${filename}`, {
+          method: 'DELETE'
+        });
+        
+        if (response.ok) {
+          window.location.reload();
+        } else {
+          alert('Erreur lors de la suppression du fichier');
+        }
+      } catch (error) {
+        console.error('Error deleting file:', error);
+        alert('Erreur lors de la suppression du fichier');
+      }
+    }
+
+    // Drag & Drop
+    const uploadZone = document.getElementById('uploadZone');
+
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+      uploadZone.addEventListener(eventName, preventDefaults, false);
+    });
+
+    function preventDefaults(e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+
+    ['dragenter', 'dragover'].forEach(eventName => {
+      uploadZone.addEventListener(eventName, highlight, false);
+    });
+
+    ['dragleave', 'drop'].forEach(eventName => {
+      uploadZone.addEventListener(eventName, unhighlight, false);
+    });
+
+    function highlight(e) {
+      uploadZone.classList.add('upload-zone-active');
+    }
+
+    function unhighlight(e) {
+      uploadZone.classList.remove('upload-zone-active');
+    }
+
+    uploadZone.addEventListener('drop', handleDrop, false);
+
+    function handleDrop(e) {
+      const dt = e.dataTransfer;
+      const files = dt.files;
+      
+      if (files.length > 0) {
+        const fileInput = document.getElementById('fileInput');
+        fileInput.files = files;
+        handleFileSelect(fileInput);
+      }
+    }
+  </script>
+</body>
+</html>
